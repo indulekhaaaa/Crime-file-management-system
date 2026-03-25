@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}FIR #{{ fir.fir_id }}{% endblock %}
+{% block topbar_title %}FIR Details{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">FIR #{{ fir.fir_id }}</h2>
+    <p class="page-subtitle">{{ fir.crime_type }} — {{ fir.location }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('fir_edit', fid=fir.fir_id) }}" class="btn btn-warning btn-sm">
+      <i class="bi bi-pencil-fill"></i> Edit
+    </a>
+    {% if case %}
+    <a href="{{ url_for('case_edit', csid=case.case_id) }}" class="btn btn-info btn-sm">
+      <i class="bi bi-clipboard2-pulse-fill"></i> Update Case
+    </a>
+    {% endif %}
+    <a href="{{ url_for('fir_list') }}" class="btn btn-outline btn-sm">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <!-- FIR Info -->
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-file-earmark-text-fill" style="color:var(--accent)"></i>&nbsp; FIR Information</h5>
+      {% set st = fir.status %}
+      <span class="badge badge-{% if st=='Open' %}open{% elif st=='Under Investigation' %}investigation{% elif st=='Closed' %}closed{% else %}dismissed{% endif %}">
+        {{ st }}
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="detail-row">
+        <div class="detail-label">FIR ID</div>
+        <div class="detail-value">#{{ fir.fir_id }}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Crime Type</div>
+        <div class="detail-value"><strong style="color:var(--accent)">{{ fir.crime_type }}</strong></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Date Filed</div>
+        <div class="detail-value">{{ fir.date_filed }}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Location</div>
+        <div class="detail-value">{{ fir.location }}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Description</div>
+        <div class="detail-value">{{ fir.description or '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- People Involved -->
+  <div>
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5><i class="bi bi-person-fill-x" style="color:#ff3333"></i>&nbsp; Criminal</h5>
+      </div>
+      <div class="card-body">
+        <div class="detail-row">
+          <div class="detail-label">Name</div>
+          <div class="detail-value">
+            <a href="{{ url_for('criminal_view', cid=fir.criminal_id) }}">{{ fir.criminal_name }}</a>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Age / Gender</div>
+          <div class="detail-value">{{ fir.age }} yrs / {{ fir.gender }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-shield-fill-check" style="color:#5bc0de"></i>&nbsp; Investigating Officer</h5>
+      </div>
+      <div class="card-body">
+        <div class="detail-row">
+          <div class="detail-label">Name</div>
+          <div class="detail-value">
+            <a href="{{ url_for('officer_view', oid=fir.officer_id) }}">{{ fir.officer_name }}</a>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Rank</div>
+          <div class="detail-value"><span class="badge badge-officer-rank">{{ fir.rank }}</span></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Station</div>
+          <div class="detail-value">{{ fir.station }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Case Status -->
+{% if case %}
+<div class="card mt-3">
+  <div class="card-header">
+    <h5><i class="bi bi-clipboard2-pulse-fill" style="color:var(--accent)"></i>&nbsp; Case Status</h5>
+    <a href="{{ url_for('case_edit', csid=case.case_id) }}" class="btn btn-warning btn-sm">
+      <i class="bi bi-pencil-fill"></i> Update
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-3">
+      <div>
+        <div class="detail-label">Investigation Stage</div>
+        <div class="detail-value mt-1">
+          <span class="badge badge-investigation">{{ case.investigation_stage }}</span>
+        </div>
+      </div>
+      <div>
+        <div class="detail-label">Court Status</div>
+        <div class="detail-value mt-1">
+          {% set cs = case.court_status %}
+          <span class="badge badge-{% if cs=='Convicted' %}closed{% elif cs=='Pending' %}investigation{% elif cs=='Acquitted' %}dismissed{% elif cs=='Trial Ongoing' %}open{% else %}dismissed{% endif %}">
+            {{ cs }}
+          </span>
+        </div>
+      </div>
+      <div>
+        <div class="detail-label">Last Updated</div>
+        <div class="detail-value mt-1" style="color:var(--text-muted); font-size:.82rem">
+          {{ case.updated_at[:16] }}
+        </div>
+      </div>
+    </div>
+    {% if case.notes %}
+    <div class="mt-2" style="color:#aaa; font-size:.85rem; padding-top:.75rem; border-top:1px solid var(--border)">
+      <strong style="font-size:.72rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted)">Notes:</strong>
+      <p style="margin-top:.3rem">{{ case.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

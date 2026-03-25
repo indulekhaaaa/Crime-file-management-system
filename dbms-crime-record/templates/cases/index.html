@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Case Status{% endblock %}
+{% block topbar_title %}Case Status Tracking{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Case Status Tracking</h2>
+    <p class="page-subtitle">Monitor investigation progress and court outcomes</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+  <div class="card-body" style="padding:.75rem 1.25rem">
+    <form method="GET" class="search-bar">
+      <select name="stage" class="form-select" style="max-width:220px">
+        <option value="">All Stages</option>
+        {% for s in stages %}
+        <option value="{{ s }}" {% if stage_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <select name="court" class="form-select" style="max-width:200px">
+        <option value="">All Court Status</option>
+        {% for c in courts %}
+        <option value="{{ c }}" {% if court_filter == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill"></i> Filter</button>
+      {% if stage_filter or court_filter %}
+      <a href="{{ url_for('cases_list') }}" class="btn btn-outline"><i class="bi bi-x-lg"></i> Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h5><i class="bi bi-clipboard2-pulse-fill" style="color:var(--accent)"></i>&nbsp;
+      All Cases
+      <span style="font-size:.8rem; color:var(--text-muted); font-weight:400;">({{ cases|length }} records)</span>
+    </h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Case #</th>
+          <th>FIR #</th>
+          <th>Crime Type</th>
+          <th>Criminal</th>
+          <th>Officer</th>
+          <th>Stage</th>
+          <th>Court Status</th>
+          <th>FIR Status</th>
+          <th>Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cases %}
+        <tr>
+          <td><span style="color:var(--text-muted)">#{{ c.case_id }}</span></td>
+          <td>
+            <a href="{{ url_for('fir_view', fid=c.fir_id) }}" style="color:var(--accent)">
+              #{{ c.fir_id }}
+            </a>
+          </td>
+          <td><strong>{{ c.crime_type }}</strong></td>
+          <td>{{ c.criminal_name }}</td>
+          <td>{{ c.officer_name }}</td>
+          <td>
+            <span class="badge badge-investigation" style="font-size:.7rem">
+              {{ c.investigation_stage }}
+            </span>
+          </td>
+          <td>
+            {% set cs = c.court_status %}
+            <span class="badge badge-{% if cs=='Convicted' %}closed{% elif cs=='Pending' %}investigation{% elif cs in ('Acquitted','Case Dismissed') %}dismissed{% elif cs=='Trial Ongoing' %}open{% else %}dismissed{% endif %}">
+              {{ cs }}
+            </span>
+          </td>
+          <td>
+            {% set st = c.fir_status %}
+            <span class="badge badge-{% if st=='Open' %}open{% elif st=='Under Investigation' %}investigation{% elif st=='Closed' %}closed{% else %}dismissed{% endif %}">
+              {{ st }}
+            </span>
+          </td>
+          <td style="font-size:.75rem; color:var(--text-muted)">{{ c.updated_at[:16] }}</td>
+          <td>
+            <a href="{{ url_for('case_edit', csid=c.case_id) }}" class="btn btn-warning btn-sm" title="Update">
+              <i class="bi bi-pencil-fill"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted)">
+            No cases found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Officer{% endblock %}
+{% block topbar_title %}{{ action }} Officer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">{{ action }} Officer</h2>
+    <p class="page-subtitle">{% if action == 'Add' %}Register a new police officer{% else %}Update officer information{% endif %}</p>
+  </div>
+  <a href="{{ url_for('officers_list') }}" class="btn btn-outline">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+
+<div style="max-width:640px">
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-shield-fill-check" style="color:var(--accent)"></i>&nbsp; Officer Details</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Full Name <span style="color:var(--accent)">*</span></label>
+            <input type="text" name="name" class="form-control"
+                   value="{{ officer.name or '' }}" required placeholder="Officer's full name"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rank <span style="color:var(--accent)">*</span></label>
+            <select name="rank" class="form-select" required>
+              <option value="">— Select Rank —</option>
+              {% set ranks = ['Constable','Head Constable','Assistant Sub-Inspector',
+                              'Sub-Inspector','Inspector','Deputy Superintendent',
+                              'Senior Inspector','Superintendent','Deputy Inspector General',
+                              'Inspector General','Director General'] %}
+              {% for r in ranks %}
+              <option value="{{ r }}" {% if officer.rank == r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Station <span style="color:var(--accent)">*</span></label>
+          <input type="text" name="station" class="form-control"
+                 value="{{ officer.station or '' }}" required placeholder="Police station name"/>
+        </div>
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Badge Number</label>
+            <input type="text" name="badge_no" class="form-control"
+                   value="{{ officer.badge_no or '' }}" placeholder="e.g. B-1001"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control"
+                   value="{{ officer.phone or '' }}" placeholder="10-digit number"/>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save-fill"></i>
+            {% if action == 'Add' %}Add Officer{% else %}Save Changes{% endif %}
+          </button>
+          <a href="{{ url_for('officers_list') }}" class="btn btn-outline">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block topbar_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Reports &amp; Analytics</h2>
+    <p class="page-subtitle">Comprehensive crime data analysis and summaries</p>
+  </div>
+</div>
+
+<!-- =================== SECTION 1: Crime Distribution =================== -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h5><i class="bi bi-bar-chart-fill" style="color:var(--accent)"></i>&nbsp; Crime Type Distribution</h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Crime Type</th>
+          <th>Total FIRs</th>
+          <th>Open</th>
+          <th>Closed</th>
+          <th>Visual</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set max_total = crime_dist[0].total if crime_dist else 1 %}
+        {% for row in crime_dist %}
+        <tr>
+          <td><strong>{{ row.crime_type }}</strong></td>
+          <td><span class="badge badge-open" style="font-size:.8rem">{{ row.total }}</span></td>
+          <td style="color:#ff6666">{{ row.open_count }}</td>
+          <td style="color:#5cb85c">{{ row.closed_count }}</td>
+          <td style="min-width:150px">
+            <div class="crime-bar-track" style="width:160px; display:inline-block">
+              <div class="crime-bar-fill"
+                   style="width:{{ ((row.total / max_total) * 100)|int }}%"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =================== SECTION 2: Open Cases =================== -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h5><i class="bi bi-exclamation-triangle-fill" style="color:#ff3333"></i>&nbsp;
+      Open &amp; Active Cases ({{ open_cases|length }})
+    </h5>
+    <a href="{{ url_for('fir_list') }}?status=Open" class="btn btn-outline btn-sm">View in FIR</a>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>FIR #</th>
+          <th>Crime Type</th>
+          <th>Date Filed</th>
+          <th>Location</th>
+          <th>Criminal</th>
+          <th>Officer</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in open_cases %}
+        <tr>
+          <td>
+            <a href="{{ url_for('fir_view', fid=f.fir_id) }}" style="color:var(--accent)">
+              #{{ f.fir_id }}
+            </a>
+          </td>
+          <td>{{ f.crime_type }}</td>
+          <td style="font-size:.8rem; color:var(--text-muted)">{{ f.date_filed }}</td>
+          <td>{{ f.location }}</td>
+          <td>{{ f.criminal_name }}</td>
+          <td>{{ f.officer_name }}</td>
+          <td>
+            {% set st = f.status %}
+            <span class="badge badge-{% if st=='Open' %}open{% else %}investigation{% endif %}">
+              {{ st }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted)">
+            No open cases. 🎉
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =================== SECTION 3: Repeat Offenders =================== -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h5><i class="bi bi-person-fill-exclamation" style="color:#ffc107"></i>&nbsp;
+      Repeat Offenders ({{ repeat_offenders|length }})
+    </h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Previous Cases</th>
+          <th>Total FIRs</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in repeat_offenders %}
+        <tr>
+          <td><span style="color:var(--text-muted)">#{{ c.criminal_id }}</span></td>
+          <td><strong>{{ c.name }}</strong></td>
+          <td>{{ c.age }}</td>
+          <td>{{ c.gender }}</td>
+          <td><span class="badge badge-open">{{ c.previous_cases }} ⚠</span></td>
+          <td><span class="badge badge-investigation">{{ c.total_firs }}</span></td>
+          <td>
+            <a href="{{ url_for('criminal_view', cid=c.criminal_id) }}"
+               class="btn btn-info btn-sm">
+              <i class="bi bi-eye-fill"></i> View
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted)">
+            No repeat offenders found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =================== SECTION 4: FIRs per Officer =================== -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h5><i class="bi bi-shield-fill-check" style="color:#5bc0de"></i>&nbsp;
+      FIRs Handled per Officer
+    </h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Officer</th>
+          <th>Rank</th>
+          <th>Station</th>
+          <th>Total FIRs</th>
+          <th>Open / Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in firs_per_officer %}
+        <tr>
+          <td>
+            <a href="{{ url_for('officer_view', oid=o.officer_id) }}" style="color:#ccc; font-weight:600">
+              {{ o.name }}
+            </a>
+          </td>
+          <td><span class="badge badge-officer-rank" style="font-size:.72rem">{{ o.rank }}</span></td>
+          <td>{{ o.station }}</td>
+          <td>
+            <span class="badge badge-closed" style="font-size:.8rem">{{ o.total_firs }}</span>
+          </td>
+          <td>
+            {% if o.open_firs > 0 %}
+            <span class="badge badge-open" style="font-size:.8rem">{{ o.open_firs }}</span>
+            {% else %}
+            <span style="color:var(--text-muted)">0</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =================== SECTION 5: Audit Log =================== -->
+<div class="card">
+  <div class="card-header">
+    <h5><i class="bi bi-journal-text" style="color:var(--accent)"></i>&nbsp;
+      Recent Audit Log (last 20 entries)
+    </h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Log #</th>
+          <th>Table</th>
+          <th>Operation</th>
+          <th>Record ID</th>
+          <th>Changed By</th>
+          <th>Timestamp</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in audit %}
+        <tr>
+          <td style="color:var(--text-muted)">#{{ log.log_id }}</td>
+          <td><code style="font-size:.78rem; color:#aaa">{{ log.table_name }}</code></td>
+          <td>
+            <span class="badge
+              {% if log.operation == 'INSERT' %}badge-closed
+              {% elif log.operation == 'UPDATE' %}badge-investigation
+              {% else %}badge-open{% endif %}"
+              style="font-size:.72rem">
+              {{ log.operation }}
+            </span>
+          </td>
+          <td style="color:var(--text-muted)">#{{ log.record_id }}</td>
+          <td>{{ log.changed_by or '—' }}</td>
+          <td style="font-size:.78rem; color:var(--text-muted)">{{ log.changed_at[:16] }}</td>
+          <td style="font-size:.78rem; color:#888; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+            {{ log.details or '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted)">
+            No audit entries found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

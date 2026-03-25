@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Criminal{% endblock %}
+{% block topbar_title %}{{ action }} Criminal Record{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">{{ action }} Criminal</h2>
+    <p class="page-subtitle">{% if action == 'Add' %}Register a new criminal profile{% else %}Update criminal information{% endif %}</p>
+  </div>
+  <a href="{{ url_for('criminals_list') }}" class="btn btn-outline">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+
+<div style="max-width:640px">
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-person-vcard-fill" style="color:var(--accent)"></i>&nbsp;
+        Criminal Information
+      </h5>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Full Name <span style="color:var(--accent)">*</span></label>
+            <input type="text" name="name" class="form-control"
+                   value="{{ criminal.name or '' }}" required placeholder="Enter full name"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Age <span style="color:var(--accent)">*</span></label>
+            <input type="number" name="age" class="form-control" min="1" max="120"
+                   value="{{ criminal.age or '' }}" required placeholder="Age"/>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Gender <span style="color:var(--accent)">*</span></label>
+            <select name="gender" class="form-select" required>
+              <option value="">— Select —</option>
+              {% for g in ['Male','Female','Other'] %}
+              <option value="{{ g }}"
+                {% if criminal.gender == g %}selected{% endif %}>{{ g }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Previous Cases</label>
+            <input type="number" name="previous_cases" class="form-control" min="0"
+                   value="{{ criminal.previous_cases or 0 }}" placeholder="0"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" name="address" class="form-control"
+                 value="{{ criminal.address or '' }}" placeholder="Full address"/>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save-fill"></i>
+            {% if action == 'Add' %}Add Criminal{% else %}Save Changes{% endif %}
+          </button>
+          <a href="{{ url_for('criminals_list') }}" class="btn btn-outline">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

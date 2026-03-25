@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}FIR Management{% endblock %}
+{% block topbar_title %}FIR Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">First Information Reports</h2>
+    <p class="page-subtitle">Register and manage all FIRs</p>
+  </div>
+  <a href="{{ url_for('fir_add') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> Register FIR
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+  <div class="card-body" style="padding:.75rem 1.25rem">
+    <form method="GET" class="search-bar">
+      <input type="text" name="crime_type" class="form-control" style="max-width:220px"
+             placeholder="Crime type…" value="{{ crime_filter }}"/>
+      <select name="status" class="form-select" style="max-width:180px">
+        <option value="">All Statuses</option>
+        {% for s in ['Open','Under Investigation','Closed','Dismissed'] %}
+        <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-funnel-fill"></i> Filter
+      </button>
+      {% if status_filter or crime_filter %}
+      <a href="{{ url_for('fir_list') }}" class="btn btn-outline">
+        <i class="bi bi-x-lg"></i> Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h5><i class="bi bi-file-earmark-text-fill" style="color:var(--accent)"></i>&nbsp;
+      FIR Records
+      <span style="font-size:.8rem; color:var(--text-muted); font-weight:400;">({{ firs|length }} records)</span>
+    </h5>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>FIR #</th>
+          <th>Crime Type</th>
+          <th>Date Filed</th>
+          <th>Location</th>
+          <th>Criminal</th>
+          <th>Officer</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in firs %}
+        <tr>
+          <td><span style="color:var(--text-muted)">#{{ f.fir_id }}</span></td>
+          <td><strong>{{ f.crime_type }}</strong></td>
+          <td style="font-size:.8rem; color:var(--text-muted)">{{ f.date_filed }}</td>
+          <td style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+            {{ f.location }}
+          </td>
+          <td>
+            <a href="{{ url_for('criminal_view', cid=f.criminal_id) }}" style="color:#ccc">
+              {{ f.criminal_name }}
+            </a>
+          </td>
+          <td>{{ f.officer_name }}</td>
+          <td>
+            {% set st = f.status %}
+            <span class="badge badge-{% if st=='Open' %}open{% elif st=='Under Investigation' %}investigation{% elif st=='Closed' %}closed{% else %}dismissed{% endif %}">
+              {{ st }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('fir_view', fid=f.fir_id) }}" class="btn btn-info btn-sm" title="View">
+                <i class="bi bi-eye-fill"></i>
+              </a>
+              <a href="{{ url_for('fir_edit', fid=f.fir_id) }}" class="btn btn-warning btn-sm" title="Edit">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
+              {% if session.role == 'admin' %}
+              <form method="POST" action="{{ url_for('fir_delete', fid=f.fir_id) }}"
+                    class="confirm-delete" style="display:inline">
+                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted)">
+            No FIRs found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
